@@ -161,6 +161,57 @@ class SlackApiManager:
 
             return res.json()['channel']
 
+        def list(
+                self,
+                cursor: Union[str, None] = None,
+                exclude_archived: bool = False,
+                exclude_member: bool = False,
+                limit: int = 0) -> dict:
+            """
+
+            Args:
+                cursor (str or None) :
+                    Paginate through collections of data by setting the cursor parameter
+                    to a next_cursor attribute returned by a previous request's response_metadata.
+                    Default value fetches the first "page" of the collection.
+                    See [pagination](https://api.slack.com/docs/pagination) for more detail.
+                exclude_archived (bool) :
+                    Exclude archived channels from the list
+                exclude_member (bool):
+                    Exclude the members collection from each channel
+                limit (int) :
+                    The maximum number of items to return.
+                    Fewer than the requested number of items may be returned,
+                    even if the end of the users list hasn't been reached.
+
+            Returns:
+                dict
+            """
+            url = urljoin(self.url, './channels.list')
+
+            data = {
+                'token': self.token,
+                'exclude_archived': exclude_archived,
+                'exclude_member': exclude_member,
+                'limit': limit
+            }
+            if cursor is not None:
+                data.update({'cursor': cursor})
+
+            res = requests.get(
+                url=url,
+                params=urlencode(data).encode('utf-8'),
+                headers=self.headers
+            )
+
+            if not res.json()['ok']:
+                print(
+                    f'[{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] '
+                    f'ERROR: {res.json()["error"]}')
+                return {}
+
+            return res.json()['channels']
+
     class User:
         def __init__(self, token: str = ''):
             """
